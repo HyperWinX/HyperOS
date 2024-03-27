@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+    dev:
+        build: .
+        image: hyperwin/hyperosbuildenv:1.0
+        environment:
+            - DISPLAY
+        hostname: hyperosbuildenv
+        volumes:
+            - .:/hyperos
+        working_dir: '/hyperos'
+        network_mode: 'host' # makes x11 windows work for `make run`
+        entrypoint: []
