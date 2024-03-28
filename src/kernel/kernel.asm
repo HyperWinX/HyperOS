@@ -2,43 +2,18 @@ bits 32
 
 section .multiboot
 
-dd 0xE85250D6	    ; Magic number
-dd 0x0			    ; Flags
-dd 0x0F             ; Header length
-dd - (0xE85250D6 + 0x0 + 0x0F)	; Checksum
+dd 0x1BADB002		; Magic number
+dd 0x0				; Flags
+dd - (0x1BADB002)	; Checksum
 
-section .data
-; Include the GDT from previous tutorials
-; Set this as our GDT with LGDT
-; instead of relying on what the bootloader sets up for us
-gdt_start:
-gdt_null:	; Entry 1: Null entry must be included first (error check)
-	dd 0x0	; double word = 4 bytes = 32 bits
-	dd 0x0
-gdt_kernel_code:	; Entry 2: Kernel code segment
-	dw 0xFFFF		; Limit bits 0-15
-	dw 0x0000		; Base low bits 16-31
-	db 0x00			; Base middle bits 32-39
-	db 0x9A			; Access bits 40-47
-	db 0xCF			; Flags bits 48-55
-	db 0x00			; Base high bits 56-63
-
-gdt_kernel_data:	; Entry 3: Kernel data segment
-	dw 0xFFFF		; Limit bits 0-15
-	dw 0x0000		; Base low bits 16-31
-	db 0x00			; Base middle bits 32-39
-	db 0x92			; Access bits 40-47
-	db 0xCF			; Flags bits 48-55
-	db 0x00			; Base high bits 56-63
-
-gdt_end:			; Needed to calculate GDT size for inclusion in GDT descriptor
-
-; GDT Descriptor
-gdt_descriptor:
-	dw gdt_end - gdt_start - 1	; Size of GDT, always less one
-	dd gdt_start
+;dd 0xE85250D6	    ; Magic number
+;dd 0x0			    ; Flags
+;dd 0x0F             ; Header length
+;dd - (0xE85250D6 + 0x0 + 0x0F)	; Checksum
 
 section .text
+
+%include "src/kernel/gdt.asm"
 
 ; Define constants
 CODE_SEG equ gdt_kernel_code - gdt_start
@@ -59,10 +34,6 @@ global InterruptsDisable
 
 extern kmain			; Defined in kernel.c
 extern KeyboardKeyPress
-
-load_gdt:
-	lgdt [gdt_descriptor] ; from gdt.asm
-	ret
 
 LoadIDT:
 	mov edx, [esp + 4]
@@ -135,10 +106,11 @@ start:
 	mov fs, ax
 	mov gs, ax
 	mov ss, ax
-	mov esp, stack_space        ; set stack pointer
-	cli				; Disable interrupts
+	cli
+	; Init stack
 	mov esp, stack_space
-	jmp kmain
+	mov ebp, stack_space
+	call kmain
 	hlt
 
 section .bss

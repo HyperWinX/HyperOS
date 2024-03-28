@@ -16,11 +16,11 @@ ASSEMBLE_COMMAND = "nasm -f elf32 %s -o %s"
 ASSEMBLE_COMMAND_DEBUG = "nasm -f elf32 -g %s -o %s"
 C_COMPILE_COMMAND = "gcc -m32 -Wall -Werror -fno-stack-protector -fno-builtin -ffreestanding -nostdlib -Isrc/include -c %s -o %s"
 CXX_COMPILE_COMMAND = "g++ -m32 -Wall -Werror -fno-stack-protector -fno-builtin -ffreestanding -nostdlib -Isrc/include -c %s -o %s"
-C_COMPILE_COMMAND_DEBUG = "gcc -g -Wall -Werror -nostdlib -Isrc/include -m32 -ffreestanding -c %s -o %s"
-CXX_COMPILE_COMMAND_DEBUG = "g++ -g -Wall -Werror -nostdlib -Isrc/include -m32 -ffreestanding -c %s -o %s"
+C_COMPILE_COMMAND_DEBUG = "gcc -O0 -g -Wall -Werror -nostdlib -Isrc/include -m32 -ffreestanding -c %s -o %s"
+CXX_COMPILE_COMMAND_DEBUG = "g++ -O0 -g -Wall -Werror -nostdlib -Isrc/include -m32 -ffreestanding -c %s -o %s"
 COMPILE_TEST_COMMAND = "g++ %s %s -m32 -lgtest -lgtest_main -pthread -fprofile-arcs -ftest-coverage"
 LINK_COMMAND = "ld -m elf_i386 --gc-sections -static -T %s -o %s %s %s"
-LINK_COMMAND_DEBUG = "ld -m elf_i386 -g -static -T %s -o %s %s %s"
+LINK_COMMAND_DEBUG = "ld -m elf_i386 -O0 -g -static -T %s -o %s %s %s"
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_DIR = os.path.join(REPO_ROOT, 'src')
@@ -116,17 +116,15 @@ def build(debug=False):
             ' '.join(BIN_FILES),
             ' '.join(O_FILES),
         )
-    print(rendered_command)
-    os.system(rendered_command)
-    #pretty_call(rendered_command, COLOR_CYAN_BOLD)
+    pretty_call(rendered_command, COLOR_CYAN_BOLD)
     link_end = datetime.datetime.now()
     # Generate ISO file
     pretty_call('mkdir -p build/iso/boot/grub', COLOR_CYAN_BOLD)
     pretty_call('cp grub.cfg build/iso/boot/grub', COLOR_CYAN_BOLD)
     pretty_call('cp %s build/iso/boot/grub' % KERNEL_OUT, COLOR_CYAN_BOLD)
     pretty_call('grub-mkrescue -o %s build/iso' % ISO_OUT, COLOR_CYAN_BOLD)
-    #pretty_call('rm -rf build', COLOR_CYAN_BOLD)
-    #pretty_call('rm -rf objects', COLOR_CYAN_BOLD)
+    pretty_call('rm -rf build', COLOR_CYAN_BOLD)
+    pretty_call('rm -rf objects', COLOR_CYAN_BOLD)
     end = datetime.datetime.now()
     pretty_print('Built %s' % KERNEL_OUT)
     pretty_print('Built %s' % ISO_OUT)

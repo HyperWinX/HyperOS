@@ -60,6 +60,7 @@ void KeyboardKeyPress(struct InterruptRegisters* regs) {
             } else if (strcmp(command_buffer, "scroll")) {
                 scroll();
             } else if (strcmp(command_buffer, "poweroff")){
+                clear_screen();
                 __asm__ volatile("hlt");
             } else if (strcmp(command_buffer, "help")) {
                 println("clear: Clear screen");
@@ -96,8 +97,8 @@ void KeyboardKeyPress(struct InterruptRegisters* regs) {
 
 // ----- Entry point -----
 int kmain() {
-    disable_cursor();
-    KeyboardInitialize();
+    //disable_cursor();
+    //KeyboardInitialize();
     InitIDT();
     InterruptsEnable();
     //RunCPUID();
@@ -111,5 +112,5 @@ int kmain() {
     //InitIDE(0, 0, 0, 0, 0);
     print_prompt();
     // Finish main execution, but don't halt the CPU. Same as `jmp $` in assembly
-    while(1);
+    for (;;);
 }

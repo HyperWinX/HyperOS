@@ -147,9 +147,10 @@ void InitIDTDesc(uint8_t num,
 }
 
 void ISRHandler(struct InterruptRegisters* regs){
+    __asm__ __volatile__("cli");
     if (regs->int_no < 32){
-        printf("%s\nException! System halted.\n", exception_messages[regs->int_no]);
-        for (;;);
+        printf("%s\nException! System restored.\n", exception_messages[regs->int_no]);
+        __asm__ __volatile__("pop %eax; sti; iret");
     }
 }
 

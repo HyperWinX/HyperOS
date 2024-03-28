@@ -92,7 +92,7 @@ void scroll() {
     for (int i = ROWS - 1; i < ROWS; i++) {
         for (int j = 0; j < COLS; j++) {
             videoMemory[i * COLS * 2 + j * 2] = ' ';
-            videoMemory[i * COLS * 2 + j * 2 + 1] = /* цвет символов */ 0x07;  
+            videoMemory[i * COLS * 2 + j * 2 + 1] = /* character color */ 0x07;  
         }
     }
 }
