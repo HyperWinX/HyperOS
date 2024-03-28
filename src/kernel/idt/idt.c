@@ -146,12 +146,8 @@ void InitIDTDesc(uint8_t num,
     IDT[num].flags = flags | 0x60;
 }
 
-void ISRHandler(struct InterruptRegisters* regs){
-    __asm__ __volatile__("cli");
-    if (regs->int_no < 32){
-        printf("%s\nException! System restored.\n", exception_messages[regs->int_no]);
-        __asm__ __volatile__("pop %eax; sti; iret");
-    }
+void ISRHandler(struct InterruptRegisters regs){
+    printf("%s\nException! System restored.\n", exception_messages[regs.int_no]);
 }
 
 void* irq_routines[16] = {
@@ -167,13 +163,13 @@ void IRQRemoveHandler(int irq){
     irq_routines[irq] = 0;
 }
 
-void IRQHandler(struct InterruptRegisters* regs){
-    void (*handler)(struct InterruptRegisters *regs);
-    handler = irq_routines[regs->int_no - 32];
+void IRQHandler(struct InterruptRegisters regs){
+    void (*handler)(struct InterruptRegisters regs);
+    handler = irq_routines[regs.int_no - 32];
     if (handler)
         handler(regs);
 
-    if (regs->int_no >= 40)
+    if (regs.int_no >= 40)
         outb(0xA0, 0x20);
 
     outb(0x20,0x20);

@@ -2,14 +2,12 @@ bits 32
 
 section .multiboot
 
-dd 0x1BADB002		; Magic number
-dd 0x0				; Flags
-dd - (0x1BADB002)	; Checksum
-
-;dd 0xE85250D6	    ; Magic number
-;dd 0x0			    ; Flags
-;dd 0x0F             ; Header length
-;dd - (0xE85250D6 + 0x0 + 0x0F)	; Checksum
+; Header
+dd 0xE85250D6	    			; Magic number
+dd 0x0			    			; Flags
+dd 0x0F             			; Header length
+dd - (0xE85250D6 + 0x0F)		; Checksum
+; Tag
 
 section .text
 
@@ -99,17 +97,21 @@ next_iteration:
 start:
 	; THANK YOU MICHAEL PETCH
 	; https://stackoverflow.com/questions/62885174/multiboot-keyboard-driver-triple-faults-with-grub-works-with-qemu-why
-	lgdt [gdt_descriptor]
-	mov ax, DATA_SEG          ; Setup the segment registers with our flat data selector
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax
-	mov ss, ax
 	cli
+	lgdt [gdt_descriptor]
+	jmp 0x08:.flush
+.flush:
+	mov cx, DATA_SEG          ; Setup the segment registers with our flat data selector
+	mov ds, cx
+	mov es, cx
+	mov fs, cx
+	mov gs, cx
+	mov ss, cx
 	; Init stack
 	mov esp, stack_space
 	mov ebp, stack_space
+	push ebx
+	push eax
 	call kmain
 	hlt
 

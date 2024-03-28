@@ -80,8 +80,6 @@ isr_common_stub:
     pusha
     mov eax,ds
     push eax
-    mov eax, cr2
-    push eax
 
     mov ax, 0x10
     mov ds, ax
@@ -89,10 +87,8 @@ isr_common_stub:
     mov fs, ax
     mov gs, ax
 
-    push esp
     call ISRHandler
 
-    add esp, 8
     pop ebx
     mov ds, bx
     mov es, bx
@@ -101,7 +97,6 @@ isr_common_stub:
 
     popa
     add esp, 8
-    sti
     iret
 
 extern IRQHandler
@@ -109,8 +104,6 @@ irq_common_stub:
     pusha
     mov eax,ds
     push eax
-    mov eax, cr2
-    push eax
 
     mov ax, 0x10
     mov ds, ax
@@ -118,10 +111,8 @@ irq_common_stub:
     mov fs, ax
     mov gs, ax
 
-    push esp
     call IRQHandler
 
-    add esp, 8
     pop ebx
     mov ds, bx
     mov es, bx
@@ -130,5 +121,4 @@ irq_common_stub:
 
     popa
     add esp, 8
-    sti
     iret

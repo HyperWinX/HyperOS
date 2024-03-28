@@ -4,7 +4,6 @@
 #include <common/stdint.h>
 
 struct InterruptRegisters{
-    uint32_t cr2;
     uint32_t ds;
     uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
     uint32_t int_no, err_code;
@@ -80,8 +79,8 @@ void InitIDTDesc(
 	uint32_t base,
 	uint16_t selector,
 	uint8_t flags);
-void ISRHandler(struct InterruptRegisters* regs);
+void ISRHandler(struct InterruptRegisters regs);
 void IRQInstallHandler(int irq, void (*handler)(struct InterruptRegisters* regs));
 void IRQRemoveHandler(int irq);
-void IRQHandler(struct InterruptRegisters* regs);
+void IRQHandler(struct InterruptRegisters regs);
 #endif
