@@ -95,8 +95,6 @@ next_iteration:
     ret
 
 start:
-	; THANK YOU MICHAEL PETCH
-	; https://stackoverflow.com/questions/62885174/multiboot-keyboard-driver-triple-faults-with-grub-works-with-qemu-why
 	cli
 	lgdt [gdt_descriptor]
 	jmp 0x08:.flush

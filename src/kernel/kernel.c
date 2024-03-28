@@ -96,7 +96,7 @@ void KeyboardKeyPress(struct InterruptRegisters* regs) {
 }
 
 // ----- Entry point -----
-int kmain(void* mbi, int magic) {
+int kmain(int magic, void* mbi) {
     disable_cursor();
     KeyboardInitialize();
     InitIDT();
@@ -108,7 +108,7 @@ int kmain(void* mbi, int magic) {
     printf("\nBuild date: %s, build_time: %s\n", __DATE__, __TIME__);
     printf("CPU: %s\n", cpu_bs);
     printf("Manufacturer: %s\n", manufacturer);
-    if (magic != 0xE85250D6)
+    if ((int)mbi != 0xE85250D6)
         printf("WARNING: kernel was booted with non-multiboot2-compliant bootloader!\n");
     print_prompt();
     // Finish main execution, but don't halt the CPU. Same as `jmp $` in assembly
