@@ -108,7 +108,7 @@ int kmain(int magic, void* mbi) {
     printf("\nBuild date: %s, build_time: %s\n", __DATE__, __TIME__);
     printf("CPU: %s\n", cpu_bs);
     printf("Manufacturer: %s\n", manufacturer);
-    if ((int)mbi != 0xE85250D6)
+    if (magic != 0xE85250D6)
         printf("WARNING: kernel was booted with non-multiboot2-compliant bootloader!\n");
     print_prompt();
     // Finish main execution, but don't halt the CPU. Same as `jmp $` in assembly

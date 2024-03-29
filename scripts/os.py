@@ -19,8 +19,8 @@ CXX_COMPILE_COMMAND = "g++ -m32 -Wall -Wextra -fno-stack-protector -fno-builtin 
 C_COMPILE_COMMAND_DEBUG = "gcc -O0 -g -Wall -Wextra -nostdlib -Isrc/include -m32 -ffreestanding -c %s -o %s"
 CXX_COMPILE_COMMAND_DEBUG = "g++ -O0 -g -Wall -Wextra -nostdlib -Isrc/include -m32 -ffreestanding -c %s -o %s"
 COMPILE_TEST_COMMAND = "g++ %s %s -m32 -lgtest -lgtest_main -pthread -fprofile-arcs -ftest-coverage"
-LINK_COMMAND = "ld -m elf_i386 --gc-sections -static -T %s -o %s %s %s"
-LINK_COMMAND_DEBUG = "ld -m elf_i386 -O0 -g -static -T %s -o %s %s %s"
+LINK_COMMAND = "ld -m elf_i386 --gc-sections -static -o %s %s %s -T %s"
+LINK_COMMAND_DEBUG = "ld -m elf_i386 -O0 -g -static -o %s %s %s -T %s"
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_DIR = os.path.join(REPO_ROOT, 'src')
@@ -104,17 +104,17 @@ def build(debug=False):
     rendered_command = ""
     if (debug):
         rendered_command = LINK_COMMAND_DEBUG % (
-            LINKER_SCRIPT,
             KERNEL_OUT,
             ' '.join(BIN_FILES),
             ' '.join(O_FILES),
+	    LINKER_SCRIPT,
         )
     else:
         rendered_command = LINK_COMMAND % (
-            LINKER_SCRIPT,
             KERNEL_OUT,
             ' '.join(BIN_FILES),
             ' '.join(O_FILES),
+	    LINKER_SCRIPT,
         )
     pretty_call(rendered_command, COLOR_CYAN_BOLD)
     link_end = datetime.datetime.now()

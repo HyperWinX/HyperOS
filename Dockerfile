@@ -1,9 +1,7 @@
-FROM hyperwin/hyperosbuildenv:1.0
+FROM ubuntu:latest
 
 ENV DEBIAN_FRONTEND noninteractive
 
-WORKDIR /hyperos
-
-COPY scripts/Makefile .
-
-RUN make
+RUN apt update &&       \
+    apt upgrade -y &&   \
+    apt install clang nasm make qemu-system-i386 grub-common xorriso gcc -y

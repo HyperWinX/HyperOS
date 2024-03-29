@@ -1,9 +1,7 @@
-version: '3'
-
 services:
     dev:
         build: .
-        image: hyperwin/hyperosbuildenv:1.0
+        image: hyperwin/hyperosbuildenv:latest
         environment:
             - DISPLAY
         hostname: hyperosbuildenv
