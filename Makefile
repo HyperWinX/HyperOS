@@ -13,13 +13,9 @@ LD_ARCH			= elf_i386
 # Flags
 DEFAULT_FLAGS	= -Iinclude -static -nostdlib -ffreestanding -Wall -Wextra -fno-stack-protector -fno-builtin -m32
 CFLAGS_STD		= -O2 $(DEFAULT_FLAGS)
-CFLAGS_DBG		= -O0 -g $(DEFAULT_FLAGS)
 ASM_FLAGS_STD	= -f $(ASM_ARCH) -Ov
-ASM_FLAGS_DBG	= -f $(ASM_ARCH)
 LINKER_FLAGS_STD= -m $(LD_ARCH) -static -O2 -T $(LINKER_SCRIPT)
-LINKER_FLAGS_DBG= -m $(LD_ARCH) -static -O0 -g -T $(LINKER_SCRIPT)
 QEMU_FLAGS_STD	= -cdrom $(ISO_OUT) -monitor stdio -vnc :0 -machine type=pc-i440fx-3.1
-QEMU_FLAGS_DBG	= $(QEMU_FLAGS_STD) -s -S &
 
 # All files
 C_FILES			= $(shell find ./src -name *.c)
@@ -29,9 +25,7 @@ LINKER_SCRIPT	= src/linker.ld
 GRUB_CFG		= ./grub.cfg
 
 OBJ_FILES_STD 	= $(C_FILES:./src%.c=./objects%.o) $(CPP_FILES:./src%.cpp=./objects%.o)
-OBJ_FILES_DBG	= $(C_FILES=./src%.c=./objects%.o.dbg) $(CPP_FILES:./src%.cpp=./objects%.o.dbg)
 BIN_FILES_STD	= $(ASM_FILES:./src%.asm=./objects%.bin)
-BIN_FILES_DBG	= $(ASM_FILES:./src%.asm=./objects%.bin.dbg)
 KERNEL_OUT		= dist/hyperos.elf
 ISO_OUT			= dist/hyperos.iso
 
@@ -63,10 +57,6 @@ all:
 run: iso
 	@$(QEMU) $(QEMU_FLAGS)
 
-# Build and run kernel with enabled debug
-run_debug: kernel_debug
-	compile and run with debug
-
 # Compile ISO image
 iso: $(KERNEL_OUT)
 	@cp $(GRUB_CFG) $(BOOT_GRUB)
@@ -76,35 +66,19 @@ iso: $(KERNEL_OUT)
 
 # Link kernel
 kernel: full_clean directories $(OBJ_FILES_STD) $(BIN_FILES_STD)
-	$(LINKER) $(LINKER_FLAGS_STD) $(OBJ_FILES_STD) $(BIN_FILES_STD) -o $(KERNEL_OUT)
-
-# Link kernel with debug info
-kernel_debug: full_clean directories $(OBJ_FILES_DBG) $(BIN_FILES_DBG)
-	$(LINKER) $(LINKER_FLAGS_DBG) $(OBJ_FILES_DBG) $(BIN_FILES_DBG) -o $(KERNEL_OUT)
+	$(LINKER) $(BIN_FILES_STD) $(OBJ_FILES_STD) $(LINKER_FLAGS_STD) -o $(KERNEL_OUT)
 
 # Compile object file from C source file
 %.o: %.c
-	$(GCC) $(CFLAGS_STD) $^ -o $@
+	$(GCC) $(CFLAGS_STD) $^ -o $(patsubst src/%.c,objects/%.o,%^)
 
 # Compile object file from C++ source file
 %.o: %.cpp
-	$(CPPGCC) $(CFLAGS_STD) $^ -o $@
-
-# Compile object file from C source file with debug info
-%.o.dbg: %.c
-	$(GCC) $(CFLAGS_DBG) $^ -o $@
-
-# Compile object file from C++ source file with debug info
-%.o.dbg: %.cpp
-	$(CPPGCC) $(CFLAGS_DBG) $^ -o $@
+	$(CPPGCC) $(CFLAGS_STD) $^ -o $(patsubst src/%.cpp,objects/%.o,%^)
 
 # Assemble binary file from ASM source file
 %.bin: %.asm
-	$(ASM) $(ASM_FLAGS_STD) $^ -o $@
-
-# Assemble binary file from ASM source file with debug info
-%.bin.dbg: %.asm
-	$(ASM) $(ASM_FLAGS_DBG) $^ -o $@
+	$(ASM) $(ASM_FLAGS_STD) $^ -o $(patsubst src/%.asm,objects/%.bin,%^)
 
 # Create required directories
 directories:
