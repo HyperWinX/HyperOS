@@ -8,5 +8,5 @@ services:
         volumes:
             - .:/hyperos
         working_dir: '/hyperos'
-        network_mode: 'host' # makes x11 windows work for `make run`
+        network_mode: 'host'
         entrypoint: []

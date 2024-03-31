@@ -1,3 +1,38 @@
+%macro pusha 0
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+    push rbp
+%endmacro
+%macro popa 0
+    pop rbp
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+%endmacro
+
 section .bss
 system_timer_fractions: resd 1
 system_timer_ms:        resd 1
@@ -9,70 +44,70 @@ section .data
 CountDown: dw 0
 section .text
 IRQ0_handler:
-    push eax
-    push ebx
-    mov eax, [IRQ0_fractions]
-    mov ebx, [IRQ0_ms];
-    add [system_timer_fractions], eax
-    adc [system_timer_ms], ebx
+    push rax
+    push rbx
+    mov rax, [IRQ0_fractions]
+    mov rbx, [IRQ0_ms];
+    add [system_timer_fractions], rax
+    adc [system_timer_ms], rbx
     mov al, 0x20
     out 0x20, al
-    pop ebx
-    pop eax
+    pop rbx
+    pop rax
     iretd
 global pit_init
 pit_init:
     nop
-    pushad
-    mov eax, 0x10000
-    cmp ebx, 18
+    pusha
+    mov rax, 0x10000
+    cmp rbx, 18
     jbe .gotReloadValue
 
-    mov eax, 1
-    cmp ebx, 1193181
+    mov rax, 1
+    cmp rbx, 1193181
     jae .gotReloadValue
 
-    mov eax, 3579545
-    mov edx, 0
-    div ebx
-    cmp edx, 3579545 / 2
+    mov rax, 3579545
+    mov rdx, 0
+    div rbx
+    cmp rdx, 3579545 / 2
     jb .l1
-    inc eax
+    inc rax
 .l1:
-    mov ebx, 3
-    mov edx, 0
-    div ebx
-    cmp edx, 3 / 2
+    mov rbx, 3
+    mov rdx, 0
+    div rbx
+    cmp rdx, 3 / 2
     jb .l2
-    inc eax
+    inc rax
 .l2:
 
 .gotReloadValue:
-    push eax
+    push rax
     mov [PIT_reload_value], ax
-    mov ebx, eax
-    mov eax, 3579545
-    mov edx, 0
-    div ebx
-    cmp edx, 3579545 / 2
+    mov rbx, rax
+    mov rax, 3579545
+    mov rbx, 0
+    div rbx
+    cmp rdx, 3579545 / 2
     jb .l3
-    inc eax
+    inc rax
 .l3:
-    mov ebx, 3
-    mov edx, 0
-    div ebx
-    cmp edx, 3 / 2
+    mov rbx, 3
+    mov rdx, 0
+    div rbx
+    cmp rdx, 3 / 2
     jb .l4
-    inc eax
+    inc rax
 .l4:
-    mov [IRQ0_frequency], eax
-    pop ebx
-    mov eax, 0xDBB3A062
-    mul ebx
-    shrd eax, edx, 10
-    shr edx, 10
-    mov [IRQ0_ms], edx
-    mov [IRQ0_fractions], eax
+    mov [IRQ0_frequency], rax
+    pop rbx
+    mov rax, 0xDBB3A062
+    mul rbx
+    shrd rax, rdx, 10
+    shr rdx, 10
+    mov [IRQ0_ms], rdx
+    mov [IRQ0_fractions], rax
 
     cli
 
@@ -85,17 +120,17 @@ pit_init:
     out 0x40, al
 
     nop
-    popad
+    popa
     ret
 
 global TimerIRQ
 TimerIRQ:
-    push eax
-    mov eax, [CountDown]
-    test eax, eax
+    push rax
+    mov rax, [CountDown]
+    test rax, rax
     jz TimerDone
-    dec eax
-    mov [CountDown], eax
+    dec rax
+    mov [CountDown], rax
 TimerDone:
-    pop eax
+    pop rax
     iretd

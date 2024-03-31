@@ -24,6 +24,41 @@
         jmp irq_common_stub
 %endmacro
 
+%macro pusha 0
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+    push rbp
+%endmacro
+%macro popa 0
+    pop rbp
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+%endmacro
+
 ISR_NOERRCODE 0
 ISR_NOERRCODE 1
 ISR_NOERRCODE 2
@@ -79,7 +114,7 @@ extern ISRHandler
 isr_common_stub:
     pusha
     mov eax,ds
-    push eax
+    push rax
 
     mov ax, 0x10
     mov ds, ax
@@ -89,7 +124,7 @@ isr_common_stub:
 
     call ISRHandler
 
-    pop ebx
+    pop rbx
     mov ds, bx
     mov es, bx
     mov fs, bx
@@ -102,8 +137,8 @@ isr_common_stub:
 extern IRQHandler
 irq_common_stub:
     pusha
-    mov eax,ds
-    push eax
+    mov rax,ds
+    push rax
 
     mov ax, 0x10
     mov ds, ax
@@ -113,7 +148,7 @@ irq_common_stub:
 
     call IRQHandler
 
-    pop ebx
+    pop rbx
     mov ds, bx
     mov es, bx
     mov fs, bx

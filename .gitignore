@@ -8,6 +8,7 @@ __pycache__
 .vscode
 .idea
 .vs
+.clangd
 venv
 
 a.out

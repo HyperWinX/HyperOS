@@ -9,11 +9,8 @@
 #include <kernel/idt/idt.h>
 #include <kernel/cpuid/cpuid.h>
 
-// ----- Global variables -----
-// This is our entire IDT. Room for 256 interrupts
-
-char command_buffer[COMMAND_BUFFER_SIZE];
-int command_len = 0;
+volatile char command_buffer[COMMAND_BUFFER_SIZE];
+volatile int command_len = 0;
 
 void disable_cursor() {
     outb(0x3D4, 0x0A);
@@ -97,20 +94,20 @@ void KeyboardKeyPress(struct InterruptRegisters* regs) {
 
 // ----- Entry point -----
 int kmain(int magic, void* mbi) {
-    disable_cursor();
-    KeyboardInitialize();
-    InitIDT();
-    InterruptsEnable();
-    RunCPUID();
-    InitTimer();
+    // disable_cursor();
+    // KeyboardInitialize();
+    // InitIDT();
+    // InterruptsEnable();
+    // RunCPUID();
+    // InitTimer();
     clear_screen();
     print_message();
     printf("\nBuild date: %s, build_time: %s\n", __DATE__, __TIME__);
     printf("CPU: %s\n", cpu_bs);
     printf("Manufacturer: %s\n", manufacturer);
-    if (magic != 0xE85250D6)
-        printf("WARNING: kernel was booted with non-multiboot2-compliant bootloader!\n");
+    // if (magic != 0x36D76289)
+    //     printf("WARNING: kernel was booted with non-multiboot2-compliant bootloader!\n");
     print_prompt();
     // Finish main execution, but don't halt the CPU. Same as `jmp $` in assembly
-    for (;;);
+    while (1);
 }

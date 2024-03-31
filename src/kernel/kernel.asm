@@ -1,13 +1,47 @@
-bits 32
+bits 64
 
-section .multiboot
+; section .multiboot
 
-; Header
-dd 0xE85250D6	    			; Magic number
-dd 0x0			    			; Flags
-dd 0x10             			; Header length
-dd - (0xE85250D6 + 0x10)		; Checksum
-; Tag
+; ; Header
+; dd 0xE85250D6	    			; Magic number
+; dd 0x0			    			; Flags
+; dd 0x10             			; Header length
+; dd - (0xE85250D6 + 0x10)		; Checksum
+
+%macro pusha 0
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+    push rbp
+%endmacro
+%macro popa 0
+    pop rbp
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+%endmacro
 
 section .text
 
@@ -31,12 +65,12 @@ gdt_kernel_data:	; Entry 3: Kernel data segment
 	db 0xFC			; Flags bits 48-55
 	db 0x00			; Base high bits 56-63
 
-gdt_end:			; Needed to calculate GDT size for inclusion in GDT descriptor
+;gdt_end:			; Needed to calculate GDT size for inclusion in GDT descriptor
 
 ; GDT Descriptor
-gdt_descriptor:
-	dw gdt_end - gdt_start - 1	; Size of GDT, always less one
-	dd gdt_start
+;gdt_descriptor:
+;	dw gdt_end - gdt_start - 1	; Size of GDT, always less one
+;	dd gdt_start
 
 ; Define constants
 CODE_SEG equ gdt_kernel_code - gdt_start
@@ -72,10 +106,10 @@ InterruptsDisable:
     ret
 
 keyboard_handler:
-	pushad
+	pusha
 	cld
 	call KeyboardKeyPress
-	popad
+	popa
 	iretd
 
 inb:
@@ -118,25 +152,6 @@ next_iteration:
     cmp ecx, 0
     jne next_iteration
     ret
-
-start:
-	cli
-	lgdt [gdt_descriptor]
-	jmp 0x08:.flush
-.flush:
-	mov cx, DATA_SEG          ; Setup the segment registers with our flat data selector
-	mov ds, cx
-	mov es, cx
-	mov fs, cx
-	mov gs, cx
-	mov ss, cx
-	; Init stack
-	mov esp, stack_space
-	mov ebp, stack_space
-	push ebx
-	push eax
-	call kmain
-	hlt
 
 section .bss
 resb 8192			; 8KB for stack
