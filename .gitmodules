@@ -1,0 +1,3 @@
+[submodule "newsrc/drivers/limine-terminal"]
+	path = newsrc/drivers/limine-terminal
+	url = https://github.com/ilobilo/limine-terminal.git

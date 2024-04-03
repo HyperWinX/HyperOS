@@ -12,6 +12,4 @@ int32_t itoab(int32_t num, char* buffer);
 bool strcmp(char* string1, char* string2);
 bool safe_strcmp(char* string1, int str1len, char* string2, int str2len);
 
-void terrible_sleep_impl(int ticks);
-
 #endif

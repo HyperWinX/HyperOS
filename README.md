@@ -25,13 +25,15 @@
 This is small microkernel written primarily in C + Assembly.
 
 ### Currently implemented features
-- Multiboot1
-- GDT
-- IDT
-- Simple shell
-- Something like stdlib
+- Limine bootloader and LBP usage
+- 64 bit mode (default if using Limine)
+
+### Used projects
+- [Limine terminal](https://github.com/ilobilo/limine-terminal.git)
+    - [Flanterm](https://github.com/ilobilo/limine-terminal.git) (Limine terminal is based on Flanterm)
 
 ### Roadmap
-- [ ] Finish multiboot2 and extract all information possible  
+- [ ] ~~Finish multiboot2 and extract all information possible~~
+- [x] Move to Limine bootloader and use LBP to get information
 - [ ] Implement allocator
 - [ ] Basic FAT32 filesystem

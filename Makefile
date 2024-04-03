@@ -5,6 +5,7 @@ AS				= $(shell which nasm)
 LD				= $(shell which gold)
 QEMU			= $(shell which qemu-system-x86_64)
 XORRISO			= $(shell which xorriso)
+STRIP			= $(shell which strip)
 
 # Defined variables
 ASM_ARCH		= elf64
@@ -13,10 +14,10 @@ BITSIZE			= 64
 CLANG_TARGET	= x86_64-unknown-none
 
 # Flags
-DEFAULT_FLAGS	= -I$(INCLUDE) -mgeneral-regs-only -c -static -nostdlib -mcmodel=kernel -ffreestanding -Wall -Wextra -fno-stack-protector -fno-builtin -m$(BITSIZE) -target $(CLANG_TARGET) 
-CFLAGS_STD		= $(DEFAULT_FLAGS) -O2
-ASM_FLAGS_STD	= -f $(ASM_ARCH) -Ov
-LINKER_FLAGS_STD= -m $(LD_ARCH) -static -O2 -T $(LINKER_SCRIPT)
+DEFAULT_FLAGS	= -I$(INCLUDE) -ggdb3 -nostdinc -mgeneral-regs-only -c -static -nostdlib -mcmodel=kernel -ffreestanding -Wall -Wextra -fno-stack-protector -fno-builtin -m$(BITSIZE) -target $(CLANG_TARGET) 
+CFLAGS_STD		= $(DEFAULT_FLAGS) -O0
+ASM_FLAGS_STD	= -f $(ASM_ARCH) -Ov -ggdb3
+LINKER_FLAGS_STD= -m $(LD_ARCH) -static -O0 -g -T $(LINKER_SCRIPT)
 QEMU_FLAGS_STD	= -cdrom $(ISO_OUT) -monitor stdio -vnc :0 -machine type=pc-i440fx-3.1
 XORRISO_FLAGS	= -as mkisofs -b boot/limine/limine-bios-cd.bin 			\
 				  -no-emul-boot -boot-load-size 4 -boot-info-table	   		\
@@ -31,8 +32,8 @@ ASM_FILES		= $(shell find ./$(SRC) -name *.asm)
 LINKER_SCRIPT	= $(SRC)/linker.ld
 LIMINE_CFG		= ./limine.cfg
 
-OBJ_FILES_STD 	= $(C_FILES:./$(SRC)%.c=./objects%.o) $(CPP_FILES:./$(SRC)%.cpp=./objects%.o)
-BIN_FILES_STD	= $(ASM_FILES:./$(SRC)%.asm=./objects%.bin)
+OBJ_FILES_STD 	= $(C_FILES:./$(SRC)%.c=./$(OBJECTS)%.o) $(CPP_FILES:./$(SRC)%.cpp=./$(OBJECTS)%.o)
+BIN_FILES_STD	= $(ASM_FILES:./$(SRC)%.asm=./$(OBJECTS)%.bin)
 KERNEL_OUT		= dist/hyperos.elf
 ISO_OUT			= dist/hyperos.iso
 
@@ -44,25 +45,7 @@ LIMINE_BOOT_DIR	= $(ISO_DIR)/boot/limine
 EFI_BOOT_DIR	= $(ISO_DIR)/EFI/BOOT
 SRC				= newsrc
 INCLUDE			= newinclude
-
-# Directories to create
-DIRECTORIES		= 'objects' 				\
-				  'objects/common'			\
-				  'objects/drivers'			\
-				  'objects/drivers/pci'		\
-				  'objects/drivers/vga'		\
-				  'objects/drivers/disk_io/blockdevice'\
-				  'objects/drivers/screen'	\
-				  'objects/fonts'			\
-				  'objects/kernel'			\
-				  'objects/kernel/pit'		\
-				  'objects/kernel/gdt'		\
-				  'objects/kernel/idt'		\
-				  'objects/kernel/cpuid'	\
-				  'objects/kernel/memory'	\
-				  'objects/memory'			\
-				  'objects/screen'			\
-				  'build/iso/boot/grub'
+OBJECTS			= objects
 
 all:
 	@echo $(AS)
@@ -91,29 +74,29 @@ kernel: full_clean directories $(OBJ_FILES_STD) $(BIN_FILES_STD)
 	$(LD) $(BIN_FILES_STD) $(OBJ_FILES_STD) $(LINKER_FLAGS_STD) -o $(KERNEL_OUT)
 
 # Compile object file from C source file
-objects/%.o: $(SRC)/%.c
+$(OBJECTS)/%.o: $(SRC)/%.c
 	$(CC) $(CFLAGS_STD) $^ -o $@
 
 # Compile object file from C++ source file
-objects/%.o: $(SRC)/%.cpp
+$(OBJECTS)/%.o: $(SRC)/%.cpp
 	$(CXX) $(CFLAGS_STD) $^ -o $@
 
 # Assemble binary file from ASM source file
-objects/%.bin: $(SRC)/%.asm
+$(OBJECTS)/%.bin: $(SRC)/%.asm
 	$(AS) $(ASM_FLAGS_STD) $^ -o $@
 
 # Create required directories
 directories:
-	mkdir -p $(DIRECTORIES)
+	rsync -av --include='*/' --exclude='*' $(SRC)/ $(OBJECTS)
 	mkdir -p $(ISO_DIR)
 	mkdir -p dist
 
 # Do cleanup
 full_clean:
-	@rm -rf build dist public objects
+	@rm -rf build dist public $(OBJECTS)
 
 postbuild_clean:
-	@rm -rf build objects
+	@rm -rf build $(OBJECTS)
 
 # Open docker shell, pull if no there is no build env
 shell:
