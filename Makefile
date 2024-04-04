@@ -14,11 +14,15 @@ BITSIZE			= 64
 CLANG_TARGET	= x86_64-unknown-none
 
 # Flags
-DEFAULT_FLAGS	= -I$(INCLUDE) -ggdb3 -nostdinc -mgeneral-regs-only -c -static -nostdlib -mcmodel=kernel -ffreestanding -Wall -Wextra -fno-stack-protector -fno-builtin -m$(BITSIZE) -target $(CLANG_TARGET) 
-CFLAGS_STD		= $(DEFAULT_FLAGS) -O0
-ASM_FLAGS_STD	= -f $(ASM_ARCH) -Ov -ggdb3
-LINKER_FLAGS_STD= -m $(LD_ARCH) -static -O0 -g -T $(LINKER_SCRIPT)
+DEFAULT_FLAGS	= -I$(INCLUDE) -nostdinc -mgeneral-regs-only -c -static -nostdlib -mcmodel=kernel -ffreestanding -Wall -Wextra -fno-stack-protector -fno-builtin -m$(BITSIZE) -target $(CLANG_TARGET) 
+CFLAGS_STD		= $(DEFAULT_FLAGS) -O2
+CFLAGS_DBG		= $(DEFAULT_FLAGS) -O0 -ggdb3
+ASM_FLAGS_STD	= -f $(ASM_ARCH) -Ov
+ASM_FLAGS_DBG	= -f $(ASM_ARCH) -O0 -g
+LINKER_FLAGS_STD= -m $(LD_ARCH) -static -O2 -T $(LINKER_SCRIPT)
+LINKER_FLAGS_DBG= -m $(LD_ARCH) -static -O0 -ggdb3 -T $(LINKER_SCRIPT)
 QEMU_FLAGS_STD	= -cdrom $(ISO_OUT) -monitor stdio -vnc :0 -machine type=pc-i440fx-3.1
+QEMU_FLAGS_DBG	= -cdrom $(ISO_OUT) -d int -D qemu.log -no-reboot -M smm=off -no-shutdown -monitor stdio -vnc :0 -machine type=pc-i440fx-3.1
 XORRISO_FLAGS	= -as mkisofs -b boot/limine/limine-bios-cd.bin 			\
 				  -no-emul-boot -boot-load-size 4 -boot-info-table	   		\
 				  --efi-boot boot/limine/limine-uefi-cd.bin	   				\
@@ -56,8 +60,25 @@ all:
 run: $(ISO_OUT)
 	$(QEMU) $(QEMU_FLAGS_STD)
 
+# Build debug kernel and run
+run_debug: $(ISO_OUT)
+	$(QEMU) $(QEMU_FLAGS_DBG)
+
 # Compile ISO image
 iso: kernel
+	@mkdir -p $(ISO_BOOT_DIR)
+	@mkdir -p $(LIMINE_BOOT_DIR)
+	@mkdir -p $(EFI_BOOT_DIR)
+	@cp -v dist/hyperos.elf $(ISO_BOOT_DIR)
+	@cp -v $(LIMINE_CFG) $(LIMINE_REPO)/limine-bios.sys $(LIMINE_REPO)/limine-bios-cd.bin \
+		$(LIMINE_REPO)/limine-uefi-cd.bin $(LIMINE_BOOT_DIR)
+	@cp -v $(LIMINE_REPO)/BOOTX64.EFI $(EFI_BOOT_DIR)
+	@cp -v $(LIMINE_REPO)/BOOTIA32.EFI $(EFI_BOOT_DIR)
+	$(XORRISO) $(XORRISO_FLAGS)
+	$(LIMINE_REPO)/limine bios-install $(ISO_OUT)
+
+# Compile ISO image using debug kernel
+iso_debug: kernel_debug
 	@mkdir -p $(ISO_BOOT_DIR)
 	@mkdir -p $(LIMINE_BOOT_DIR)
 	@mkdir -p $(EFI_BOOT_DIR)

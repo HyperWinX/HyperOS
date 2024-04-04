@@ -1,6 +1,10 @@
-#ifndef STDIO_H
-#define STDIO_H
+#pragma once
 
-int printf(const char* format, ...);
+#include <drivers/terminal/flanterm.h>
 
-#endif
+#define puts(str) flanterm_write(stdout, str, sizeof(str))
+#define putchar(c) flanterm_putchar(stdout, c)
+
+extern struct flanterm_context* stdout;
+
+void printf(const char* fmt, ...);

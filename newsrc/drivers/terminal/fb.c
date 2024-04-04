@@ -29,8 +29,29 @@
 #include <drivers/terminal/flanterm.h>
 #include <drivers/terminal/fb.h>
 
-void memset(void*, uint8_t, size_t);
-void memcpy(void*, const void*, size_t);
+void *memset(void *, int, size_t);
+void *memcpy(void *, const void *, size_t);
+
+#ifndef FLANTERM_FB_DISABLE_BUMP_ALLOC
+
+#ifndef FLANTERM_FB_BUMP_ALLOC_POOL_SIZE
+#define FLANTERM_FB_BUMP_ALLOC_POOL_SIZE (64*1024*1024)
+#endif
+
+static uint8_t bump_alloc_pool[FLANTERM_FB_BUMP_ALLOC_POOL_SIZE];
+static size_t bump_alloc_ptr = 0;
+
+static void *bump_alloc(size_t s) {
+    size_t next_ptr = bump_alloc_ptr + s;
+    if (next_ptr > FLANTERM_FB_BUMP_ALLOC_POOL_SIZE) {
+        return NULL;
+    }
+    void *ret = &bump_alloc_pool[bump_alloc_ptr];
+    bump_alloc_ptr = next_ptr;
+    return ret;
+}
+
+#endif
 
 // Builtin font originally taken from:
 // https://github.com/viler-int10h/vga-text-mode-fonts/raw/master/FONTS/PC-OTHER/TOSH-SAT.F16
@@ -861,6 +882,9 @@ struct flanterm_context *flanterm_fb_init(
     size_t font_scale_x, size_t font_scale_y,
     size_t margin
 ) {
+#ifndef FLANTERM_FB_DISABLE_BUMP_ALLOC
+    size_t orig_bump_alloc_ptr = bump_alloc_ptr;
+#endif
 
 #ifdef FLANTERM_FB_SUPPORT_BPP
     if (red_mask_size < 8 || red_mask_size != green_mask_size || red_mask_size != blue_mask_size) {
@@ -869,7 +893,11 @@ struct flanterm_context *flanterm_fb_init(
 #endif
 
     if (_malloc == NULL) {
+#ifndef FLANTERM_FB_DISABLE_BUMP_ALLOC
+        _malloc = bump_alloc;
+#else
         return NULL;
+#endif
     }
 
     struct flanterm_fb_context *ctx = NULL;
@@ -1099,6 +1127,12 @@ struct flanterm_context *flanterm_fb_init(
     return _ctx;
 
 fail:
+#ifndef FLANTERM_FB_DISABLE_BUMP_ALLOC
+    if (_malloc == bump_alloc) {
+        bump_alloc_ptr = orig_bump_alloc_ptr;
+        return NULL;
+    }
+#endif
 
     if (_free == NULL) {
         return NULL;

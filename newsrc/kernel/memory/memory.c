@@ -6,6 +6,13 @@ void memset(void* _Nonnull restrict dst, const uint8_t data, size_t size) {
 	else while (size--) *(uint8_t*)dst++ = data;
 }
 
-void memcpy(void* _Nonnull restrict dst, void* _Nonnull restrict src, size_t size){
-	while (size--) *(char*)(dst--) = *(char*)(src--);
+void* memcpy(void* dest, const void* src, size_t n) {
+    uint8_t *pdest = (uint8_t *)dest;
+    const uint8_t *psrc = (const uint8_t *)src;
+
+    for (size_t i = 0; i < n; i++) {
+        pdest[i] = psrc[i];
+    }
+
+    return dest;
 }

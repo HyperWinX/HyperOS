@@ -3,7 +3,7 @@
 
 #include <common/stdint.h>
 
-#define bool uint8_t
+#define bool int
 #define false 0
 #define true 1
 
